@@ -1,5 +1,5 @@
 // Speed up time by this factor
-const speedup = 1000;
+const speedup = 5;
 
 // Save initial timestamp
 const initialTimestamp = Date.now();
