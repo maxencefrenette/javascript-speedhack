@@ -1,8 +1,9 @@
 (() => {
-    // Speed up time by this factor
+    // Speed up time by these factors
     const date_speedup = 5;
     const set_timeout_speedup = 1;
     const set_timeout_repeat = 1;
+    const set_interval_speedup = 1;
     
     // Save initial timestamp
     const initialTimestamp = Date.now();
@@ -43,5 +44,11 @@
             repeat_counter = 0;
             return oldSetTimeout(handler, timeout / set_timeout_speedup, ...args);
         }
+    }
+
+    // Monkey-patch setInterval()
+    const oldSetInterval = setInterval;
+    window.setInterval = (handler, delay, ...args) => {
+        return oldSetInterval(handler, delay / set_interval_speedup, ...args);
     }
 })();
