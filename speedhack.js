@@ -4,6 +4,7 @@
     const set_timeout_speedup = 1;
     const set_timeout_repeat = 1;
     const set_interval_speedup = 1;
+    const set_interval_repeat = 1;
     
     // Save initial timestamp
     const initialTimestamp = Date.now();
@@ -49,6 +50,16 @@
     // Monkey-patch setInterval()
     const oldSetInterval = setInterval;
     window.setInterval = (handler, delay, ...args) => {
-        return oldSetInterval(handler, delay / set_interval_speedup, ...args);
+        let newHandler = handler;
+        if (set_interval_repeat != 1) {
+            newHandler = (...innerArgs) => {
+                for(let i = 0; i < set_interval_repeat; i++) {
+                    handler(...innerArgs);
+                    timestampAdjustment += 10000;
+                }
+            }
+        }
+
+        return oldSetInterval(newHandler, delay / set_interval_speedup, ...args);
     }
 })();
