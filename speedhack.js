@@ -1,34 +1,47 @@
-// Speed up time by this factor
-const date_speedup = 5;
-const set_timeout_speedup = 5;
-
-// Save initial timestamp
-const initialTimestamp = Date.now();
-
-// Monkey-patch Date.now()
-const oldDateNow = Date.now;
-window.Date.now = () => {
-    return initialTimestamp + date_speedup * (oldDateNow.call(Date) - initialTimestamp);
-}
-
-// Monkey-patch new Date()
-const OldDate = Date;
-class SpeedupDate extends OldDate {
-    constructor(...args) {
-        if (args.length === 0) {
-            super(Date.now());
-        } else {
-            super(...args);
+(() => {
+    // Speed up time by this factor
+    const date_speedup = 5;
+    const set_timeout_speedup = 1;
+    const set_timeout_repeat = 1;
+    
+    // Save initial timestamp
+    const initialTimestamp = Date.now();
+    let timestampAdjustment = 0;
+    
+    // Monkey-patch Date.now()
+    const oldDateNow = Date.now;
+    window.Date.now = () => {
+        return initialTimestamp + date_speedup * (oldDateNow.call(Date) - initialTimestamp) + timestampAdjustment;
+    }
+    
+    // Monkey-patch new Date()
+    const OldDate = Date;
+    class SpeedupDate extends OldDate {
+        constructor(...args) {
+            if (args.length === 0) {
+                super(Date.now());
+            } else {
+                super(...args);
+            }
         }
     }
-}
-window.Date = SpeedupDate;
+    window.Date = SpeedupDate;
+    
+    // Monkey-patch requestAnimationFrame
+    // TODO
+    
+    // Monkey-patch setTimeout()
+    let repeat_counter = 0;
+    const oldSetTimeout = setTimeout;
+    window.setTimeout = (handler, timeout, ...args) => {
+        repeat_counter += 1;
 
-// Monkey-patch requestAnimationFrame
-// TODO
-
-// Monkey-patch setTimeout()
-const oldSetTimeout = setTimeout;
-setTimeout = (handler, timeout, ...args) => {
-    return oldSetTimeout(handler, timeout / set_timeout_speedup, ...args);
-}
+        if (repeat_counter < set_timeout_repeat) {
+            timestampAdjustment += 1000;
+            handler(...args);
+        } else {
+            repeat_counter = 0;
+            return oldSetTimeout(handler, timeout / set_timeout_speedup, ...args);
+        }
+    }
+})();
