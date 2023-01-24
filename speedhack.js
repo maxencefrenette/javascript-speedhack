@@ -1,6 +1,7 @@
 // Speed up time by this factor
 const date_speedup = 5;
-const set_timeout_speedup = 5;
+const set_timeout_speedup = 1;
+const set_timeout_repeat = 1;
 
 // Save initial timestamp
 const initialTimestamp = Date.now();
@@ -30,5 +31,11 @@ window.Date = SpeedupDate;
 // Monkey-patch setTimeout()
 const oldSetTimeout = setTimeout;
 setTimeout = (handler, timeout, ...args) => {
-    return oldSetTimeout(handler, timeout / set_timeout_speedup, ...args);
+    const newHandler = () => {
+        for(int i = 0; i < set_timeout_repeat; i++) {
+            handler();
+        }
+    }
+
+    return oldSetTimeout(newHandler, timeout / set_timeout_speedup, ...args);
 }
